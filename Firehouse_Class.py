@@ -6,12 +6,16 @@ import tweepy
 from tweepy import OAuthHandler
 import ujson as json
 import time
+
+import sqlite3
 import configparser
 from collections import deque,defaultdict
 import sys
 import pymysql
 import pymysql.cursors
 import os
+import threading
+from socket import *
 
 class firehose:
 
@@ -24,40 +28,22 @@ class firehose:
    # consumer_secret = Config.get("TwitterCredentials","k2eZ366lRkP3NvmWjKLmZaJunsZUlbzNwa7p0CeuXfRteWU1tB")
     access_token = "189017323-EDthh3deAiHeNVgN19I9qjEdmmcTV1yQjvBlimr4"
     access_token_secret = "AJ0TvFuXDIrnSRxEr760tTFCiSU86IjY6cd65Fo9BvWTO"
-    serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-# bind the socket to a public host, and a well-known port
-    print("Socket" +socket.gethostname())
-    serversocket.bind((socket.gethostname(), 3306))
-
-# become a server socket
-    serversocket.listen(5)
-    connection=None;
-    while True:
-
-        print('waiting for a connection')
-        connection, client_address = serversocket.accept()
-
-    try:
-
-        connectionInstance = pymysql.connect(host='127.0.0.1',
-                                             port=3306,
-
-                                     db='TwitterDatabase',
-                                     cursorclass=pymysql.cursors.DictCursor)
-        connectionInstance.close()
-        print("After")
-    except pymysql.err.OperationalError:
-        print('Database Doesnt exist')
-        connectionInstance = pymysql.connect(host='127.0.0.1',
-                                             port=3306,
-                                    cursorclass=pymysql.cursors.DictCursor)
-        print('After Connection')
-        cursorInstance=connectionInstance.cursor()
-        sqlStatement= "CREATE DATABASE "+"TwitterDatabase"
-        cursorInstance.execute(sqlStatement)
-        connectionInstance.close()
 
 
+
+
+
+
+    conn = sqlite3.connect('Twitter.db')
+    c = conn.cursor()
+
+
+
+
+
+
+
+    input("Press Enter to continue...")
     api = []
     auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
     api.append(tweepy.API(auth,wait_on_rate_limit=True,wait_on_rate_limit_notify=True,compression=True))
@@ -78,6 +64,22 @@ class firehose:
         self.fh = open("firehose_test.ndjson","a+")
         self.ratelimit_reset = None
         self.ratelimit_remaining = None
+    def client(addr, port, message="Test"):
+        print("Started client")
+        s = socket(AF_INET, SOCK_STREAM)
+        s.connect((addr, int(port)))
+        s.send(bytes(message.encode()))
+        s.close()
+        print("[+] Sent test message \""+message+"\" to",addr+port)
+
+    def server(port):
+        print("[*] Running Server on port",port)
+        s = socket(AF_INET, SOCK_STREAM)
+        s.bind(("", port))
+        s.listen()
+        connSkt, host = s.accept()
+        msg = connSkt.recv(1024).decode()
+        print("[+] Recieved message:",msg)
 
     def get_creation_time(self,id):
         return ((id >> 22) + 1288834974657)
