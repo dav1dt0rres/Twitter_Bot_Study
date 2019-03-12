@@ -6,6 +6,7 @@ import tweepy
 from tweepy import OAuthHandler
 import ujson as json
 import time
+from Database import Database
 
 import sqlite3
 import configparser
@@ -31,18 +32,6 @@ class firehose:
 
 
 
-
-
-
-    conn = sqlite3.connect('Twitter.db')
-    c = conn.cursor()
-
-
-
-
-
-
-
     input("Press Enter to continue...")
     api = []
     auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
@@ -59,11 +48,13 @@ class firehose:
     MACHINE_IDS = (375,382,361,372,364,381,376,365,363,362,350,325,335,333,342,326,327,336,347,332)
     SNOWFLAKE_EPOCH = 1288834974657
 
-    def __init__(self):
+    def __init__(self,create):
         self.queue = deque()
         self.fh = open("firehose_test.ndjson","a+")
         self.ratelimit_reset = None
         self.ratelimit_remaining = None
+        self.Database= Database(create);
+        print("Finished Initiailizing Database Object")
     def client(addr, port, message="Test"):
         print("Started client")
         s = socket(AF_INET, SOCK_STREAM)
@@ -82,12 +73,15 @@ class firehose:
         print("[+] Recieved message:",msg)
 
     def get_creation_time(self,id):
+
         return ((id >> 22) + 1288834974657)
 
     def machine_id(self,id):
+
         return (id >> 12) & 0b1111111111
 
     def sequence_id(self,id):
+
         return id & 0b111111111111
 
     def ingest_range(self,begin,end): # This method is where the magic happens
@@ -117,15 +111,11 @@ class firehose:
         print("length of tweets",len(tweets))
         tweets_processed = defaultdict(int)
         for tweet in tweets:
-            print("Entering for loop")
-            tweet._json['retrieved_on'] = int(time.time())
-            Object=json.dumps(tweet._json,sort_keys=True)
-            #print("Dumped"+" "+Object);
-            print("Dumped"+" "+tweet._json['full_text'])
-            created_at = tweet._json['created_at']
-            id = int(tweet._json['id'])
 
-            print("ID"," ",id," ","Created at"," ",created_at," ","Retreived",tweet._json['retrieved_on'])
+
+            self.Database.addTweet(tweet)
+
+            id = int(tweet._json['id'])
 
             print(self.machine_id(id),self.get_creation_time(id),self.sequence_id(id))
             tweets_processed[self.get_creation_time(id)] += 1
@@ -139,7 +129,8 @@ class firehose:
 
 if __name__ == '__main__':
     print("Starting Program")
-    fh = firehose()
+
+    fh = firehose(input("Press 1 to Create, else press enter"))
 
     while True:
         try:
