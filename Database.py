@@ -22,7 +22,7 @@ class Database:
 
 
     def __init__(self,create):
-        self.sqlite_file = 'Twitter_db.sqlite'
+        self.sqlite_file = 'Twitter_db_2.sqlite'
         self.Counter=0;
         if create=='1':
             print("Entered because needs to create Database")
@@ -30,7 +30,7 @@ class Database:
 
 
     def CreateDatabase(self):
-        sqlite_file = 'C:\\Users\\Dtorres\\TwitterBot_Study\\Twitter_db.sqlite'
+
         self.Connection= sqlite3.connect(self.sqlite_file)
         c = self.Connection.cursor()
 

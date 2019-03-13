@@ -84,15 +84,15 @@ class firehose:
 
         return id & 0b111111111111
 
-    def ingest_range(self,begin,end): # This method is where the magic happens
-        for epoch in range(begin,end): # Move through each millisecond
+    def ingest_range(self,begin,end):
+        for epoch in range(begin,end):
             time_component = (epoch - self.SNOWFLAKE_EPOCH) << 22
             for machine_id in self.MACHINE_IDS: # Iterate over machine ids
-                for sequence_id in [0]: # Add more sequence ids as needed
+                for sequence_id in [0]:
                     twitter_id = time_component + (machine_id << 12) + sequence_id
-                    print("Twitter IDS going in"+str(twitter_id))
+                    #print("Twitter IDS going into queue"+str(twitter_id))
                     self.queue.append(twitter_id)
-                    if len(self.queue) >= 10:
+                    if len(self.queue) >= 10:#once over ten
                         ids_to_process = []
                         for i in range(0,10):
                             ids_to_process.append(self.queue.popleft())
@@ -137,6 +137,8 @@ if __name__ == '__main__':
             start = int(time.time() * 1000) - 1000 # Start from current time
             end = start + 5000            # Get five seconds of the timeline
             fh.ingest_range(start,end)
+            print("Outside of Ingest")
+            raw=input("Please press enter")
         except Exception as e:
             print(e)
             time.sleep(60)
