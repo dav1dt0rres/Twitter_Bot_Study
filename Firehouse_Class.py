@@ -113,7 +113,7 @@ class firehose:
         for tweet in tweets:
 
 
-            self.Database.addTweet(tweet)
+            #self.Database.addTweet(tweet)*****Database Write occurs******
 
             id = int(tweet._json['id'])
 
