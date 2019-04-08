@@ -99,6 +99,7 @@ class firehose:
                         self.process_ids(ids_to_process)
 
     def process_ids(self,tweet_ids):
+        counter=0;
         tweets = firehose.api[firehose.current_api].statuses_lookup(tweet_ids,tweet_mode='extended',trim_user=False,include_entities=True)
 
         if 'x-rate-limit-remaining' in firehose.api[firehose.current_api].last_response.headers:
@@ -113,12 +114,13 @@ class firehose:
         for tweet in tweets:
 
 
-            #self.Database.addTweet(tweet)*****Database Write occurs******
+            self.Database.addTweet(tweet) #*****Database Write occurs******
 
             id = int(tweet._json['id'])
 
             print(self.machine_id(id),self.get_creation_time(id),self.sequence_id(id))
             tweets_processed[self.get_creation_time(id)] += 1
+
 
         print("RateLimit Remaining",self.ratelimit_remaining)
         if self.ratelimit_remaining <= 0:
